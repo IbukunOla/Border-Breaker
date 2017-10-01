@@ -47,6 +47,7 @@ class Block(pygame.sprite.Sprite):
 		self.rect.x = x
 		self.rect.y = y
 
+
 class Ball(pygame.sprite.Sprite):
 	""" This class represents the ball
 		It derives from the "Sprite" class in Pygame """
@@ -56,24 +57,28 @@ class Ball(pygame.sprite.Sprite):
 
 	# Floating point representation of where the ball is
 	x = 0.0
-	y = 180.0
+	# y = 180.0
+	y = 500.0
 
 	# Direction of ball (in degrees)
-	direction = 200
-
-	width = 10
-	height = 10
-
+	# direction = 200
+	direction = 10
+	# width = 10
+	# height = 10
+	width = 100
+	height = 100
 	# Constructor. Pass in the color of the block, and its x and y position
 	def __init__(self):
 		# Call the parent class (Sprite) constructor
 		super().__init__()
 
 		# Create the image of the ball
-		self.image = pygame.Surface([self.width, self.height])
+		self.image = pygame.image.load("saudi2.png")
+		self.image = pygame.transform.scale(self.image, (40, 40))
+		#pygame.Surface([self.width, self.height])
 
 		# Color the ball
-		self.image.fill(white)
+		#self.image.fill(white)
 
 		# Get a rectangle object that shows where our image is
 		self.rect = self.image.get_rect()
@@ -132,8 +137,10 @@ class Player(pygame.sprite.Sprite):
 		# Call the parent's constructor
 		super().__init__()
 
-		self.width = 75
-		self.height = 15
+		self.width = 100
+		self.height = 10
+
+
 		self.image = pygame.Surface([self.width, self.height])
 		self.image.fill((white))
 
@@ -143,7 +150,7 @@ class Player(pygame.sprite.Sprite):
 		self.screenwidth = pygame.display.get_surface().get_width()
 
 		self.rect.x = 0
-		self.rect.y = self.screenheight - self.height
+		self.rect.y = self.screenheight - self.height - 10
 
 	def update(self):
 		""" Update the player position. """
@@ -156,6 +163,45 @@ class Player(pygame.sprite.Sprite):
 		if self.rect.x > self.screenwidth - self.width:
 			self.rect.x = self.screenwidth - self.width
 
+
+
+def level(num):
+	top = 80
+	blockcount = 32
+	ready = False
+
+	if(num < 5):
+		curr_time = pygame.time.get_ticks()
+
+		while not ready:
+			screen.fill(black)
+			text = font.render("Level " + str(num), True, white)
+			screen.blit(text, [350, 290])
+			pygame.display.flip()
+
+			for event in pygame.event.get():
+				if event.type == pygame.MOUSEBUTTONDOWN:
+					ready = True
+
+		if(pygame.time.get_ticks() == curr_time + 10):
+			print('test')
+			ready = True
+
+		#Game isnt over
+		for row in range(num + 2):
+			# 32 columns of blocks
+			for column in range(0, blockcount):
+				# Create a block (color,x,y)
+				block = Block(blue, column * (block_width + 2) + 1, top)
+				blocks.add(block)
+				allsprites.add(block)
+			# Move the top of the next row down
+			top += block_height + 2
+		return False
+	else:
+		#They won the game
+		return True
+
 # Call this function so the Pygame library can initialize itself
 pygame.init()
 
@@ -163,7 +209,7 @@ pygame.init()
 screen = pygame.display.set_mode([800, 600])
 
 # Set the title of the window
-pygame.display.set_caption('Breakout')
+pygame.display.set_caption('Boarder Breaker')
 
 # Enable this to make the mouse disappear when over our window
 pygame.mouse.set_visible(0)
@@ -189,23 +235,16 @@ allsprites.add(ball)
 balls.add(ball)
 
 # The top of the block (y position)
-top = 80
+# top = 80
 
 # Number of blocks to create
-blockcount = 32
+#blockcount = 32
 
 # --- Create blocks
 
-# Five rows of blocks
-for row in range(5):
-	# 32 columns of blocks
-	for column in range(0, blockcount):
-		# Create a block (color,x,y)
-		block = Block(blue, column * (block_width + 2) + 1, top)
-		blocks.add(block)
-		allsprites.add(block)
-	# Move the top of the next row down
-	top += block_height + 2
+# Game Level
+game_level = 1
+
 
 # Clock to limit speed
 clock = pygame.time.Clock()
@@ -213,15 +252,81 @@ clock = pygame.time.Clock()
 # Is the game over?
 game_over = False
 
+#Is game finished?
+finished_game = False
+
 # Exit the program?
 exit_program = False
 
+# Define some colors
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+
+# Starting position of the rectangle
+rect_x = 50
+rect_y = 50
+
+# Speed and direction of rectangle
+rect_change_x = 5
+rect_change_y = 5
+
+display_instructions = True
+instruction_page = 1
+
+# -------- Instruction Page Loop -----------
+while display_instructions:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            display_instructions = False
+            exit_program = True
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            instruction_page += 1
+            if instruction_page > 2:
+                display_instructions = False
+
+    # Set the screen background
+    screen.fill(RED)
+
+    if instruction_page == 1:
+        # Draw instructions, page 1
+        # This could also load an image created in another program.
+        # That could be both easier and more flexible.
+        font = pygame.font.SysFont("Times New Roman", 72)
+        text = font.render("Welcome to Boarder Breaker!", True, white)
+        text_rect = text.get_rect(center=(800 / 2, 600 / 2))
+        screen.blit(text, text_rect)
+        # screen.blit(text, [10, 10])
+
+    if instruction_page == 2:
+        # Draw instructions, page 2
+        font = pygame.font.SysFont("Times New Roman", 72)
+        text = font.render("Pick your flag!", True, white)
+        screen.blit(text, [240, 10])
+        image = pygame.image.load('syria2.png')
+        image = pygame.transform.scale(image, (200, 200))
+        screen.blit(image, (70, 70))
+        image2 = pygame.image.load('nigeria2.png')
+        image2 = pygame.transform.scale(image2, (200, 200))
+        screen.blit(image2, (310, 70))
+        image3 = pygame.image.load('turkey2.png')
+        image3 = pygame.transform.scale(image3, (200, 200))
+        screen.blit(image3, (550, 70))
+        image4 = pygame.image.load('usa2.png')
+        image4 = pygame.transform.scale(image4, (200, 200))
+        screen.blit(image4, (430, 300))
+        image5 = pygame.image.load('saudi2.png')
+        image5 = pygame.transform.scale(image5, (200, 200))
+        screen.blit(image5, (190, 300))
+
+    # Go ahead and update the screen with what we've drawn.
+    pygame.display.flip()
+
+level(game_level)
 # Main program loop
 while not exit_program:
 
 	# Limit to 30 fps
 	clock.tick(30)
-
 	# Clear the screen
 	screen.fill(black)
 
@@ -229,6 +334,11 @@ while not exit_program:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			exit_program = True
+		if event.type == pygame.KEYDOWN:
+			if event.key == pygame.K_r:
+				print('Pressed ' + str(pygame.K_r))
+				for block in blocks.sprites():
+					block.kill()
 
 	# Update the ball and player position as long
 	# as the game is not over.
@@ -263,8 +373,15 @@ while not exit_program:
 		ball.bounce(0)
 
 		# Game ends if all the blocks are gone
-		if len(blocks) == 0:
-			game_over = True
+	if len(blocks) == 0:
+		game_level += 1
+		finished_game = level(game_level)
+		#game_over =
+	#  True
+
+	if finished_game:
+		game_over = True
+		print('Finished Game')
 
 	# Draw Everything
 	allsprites.draw(screen)
